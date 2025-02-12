@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/vpkbiet.png">
+    <title>VPKBIET Previous Year Question Papers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .nav {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: #34495e;
+            overflow-x: auto;
+        }
+
+        .nav-button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            background-color: #2980b9;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .papers-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .paper-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .paper-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .paper-title {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .paper-year {
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .view-btn {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .download-btn {
+            background-color: #2980b9;
+            color: white;
+        }
+
+        .pdf-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            z-index: 1000;
+        }
+
+        .pdf-viewer iframe {
+            width: 80%;
+            height: 80%;
+            margin: 5% auto;
+            display: block;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-wrap: wrap;
+            }
+
+            .papers-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Previous Year Question Papers</h1>
+    </header>
+
+    <!-- Navigation for Branch, Semester, and Subject -->
+    <nav class="nav" id="branchNav"></nav>
+    <nav class="nav" id="semesterNav" style="display: none;"></nav>
+    <nav class="nav" id="subjectNav" style="display: none;"></nav>
+
+    <div class="container">
+        <input type="text" class="search-box" placeholder="Search papers..." id="searchInput">
+
+        <div class="papers-container" id="papersContainer"></div>
+    </div>
+
+    <!-- PDF Viewer -->
+    <div class="pdf-viewer" id="pdfViewer">
+        <span class="close-btn" onclick="closePDF()">&times;</span>
+        <iframe id="pdfFrame"></iframe>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Question Paper Repository. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Sample data structure
+     
+
+        const data = {
+            "Computer Science": {
+                "Semester 1": {
+                    "Mathematics": [
+                        { title: 'Mathematics 2023', year: '2023', pdf: 'math_2023.pdf' },
+                        { title: 'Mathematics 2022', year: '2022', pdf: 'math_2022.pdf' }
+                    ],
+                    "Physics": [
+                        { title: 'Physics 2023', year: '2023', pdf: 'physics_2023.pdf' },
+                        { title: 'Physics 2022', year: '2022', pdf: 'physics_2022.pdf' }
+                    ]
+                },
+                "Semester 2": {
+                    "Chemistry": [
+                        { title: 'Chemistry 2023', year: '2023', pdf: 'chemistry_2023.pdf' },
+                        { title: 'Chemistry 2022', year: '2022', pdf: 'chemistry_2022.pdf' }
+                    ]
+                }
+            },
+            "Information Technology": {
+                "Semester 1": {
+                    "Mathematics": [
+                        { title: 'Mathematics 2023', year: '2023', pdf: 'math_2023.pdf' },
+                        { title: 'Mathematics 2022', year: '2022', pdf: 'math_2022.pdf' }
+                    ],
+                    "Physics": [
+                        { title: 'Physics 2023', year: '2023', pdf: 'physics_2023.pdf' },
+                        { title: 'Physics 2022', year: '2022', pdf: 'physics_2022.pdf' }
+                    ]
+                },
+                "Semester 2": {
+                    "Chemistry": [
+                        { title: 'Chemistry 2023', year: '2023', pdf: 'chemistry_2023.pdf' },
+                        { title: 'Chemistry 2022', year: '2022', pdf: 'chemistry_2022.pdf' }
+                    ]
+                }
+            },
+            "Mechanical": {
+                "Semester 1": {
+                    "Mathematics": [
+                        { title: 'Mathematics 2023', year: '2023', pdf: 'math_2023.pdf' }
+                    ]
+                }
+            }
+        };
+       
+
+        // Initialize branch navigation
+        function initBranchNavigation() {
+            const branchNav = document.getElementById('branchNav');
+            Object.keys(data).forEach(branch => {
+                const button = document.createElement('button');
+                button.className = 'nav-button';
+                button.textContent = branch;
+                button.onclick = () => showSemesters(branch);
+                branchNav.appendChild(button);
+            });
+        }
+
+        // Show semesters for selected branch
+        function showSemesters(branch) {
+            const semesterNav = document.getElementById('semesterNav');
+            semesterNav.innerHTML = '';
+            semesterNav.style.display = 'flex';
+
+            Object.keys(data[branch]).forEach(semester => {
+                const button = document.createElement('button');
+                button.className = 'nav-button';
+                button.textContent = semester;
+                button.onclick = () => showSubjects(branch, semester);
+                semesterNav.appendChild(button);
+            });
+
+            // Hide subject navigation and papers container
+            document.getElementById('subjectNav').style.display = 'none';
+            document.getElementById('papersContainer').innerHTML = '';
+        }
+
+        // Show subjects for selected semester
+        function showSubjects(branch, semester) {
+            const subjectNav = document.getElementById('subjectNav');
+            subjectNav.innerHTML = '';
+            subjectNav.style.display = 'flex';
+
+            Object.keys(data[branch][semester]).forEach(subject => {
+                const button = document.createElement('button');
+                let showname=document.querySelectorAll('button').innerText;
+                console.log(showname);
+                button.className = 'nav-button';
+                button.textContent = subject;
+                console.log(subject);
+                button.onclick = () => showPapers(branch, semester, subject);
+                subjectNav.appendChild(button);
+
+            });
+
+
+            // Show papers for the first subject by default
+            const firstSubject = Object.keys(data[branch][semester])[0];
+            showPapers(branch, semester, firstSubject);
+        }
+
+        // Show papers for selected subject
+        function showPapers(branch, semester, subject) {
+            const container = document.getElementById('papersContainer');
+            container.innerHTML = '';
+
+            data[branch][semester][subject].forEach(paper => {
+                const card = document.createElement('div');
+                card.className = 'paper-card';
+                card.innerHTML = `
+                    <h3 class="paper-title">${paper.title}</h3>
+                    <p class="paper-year">Year: ${paper.year}</p>
+                    <div class="btn-group">
+                        <button class="btn view-btn" onclick="viewPDF('${paper.pdf}')">View</button>
+                        <a href="${paper.pdf}" download class="btn download-btn">Download</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        let subpdf=document.querySelectorAll(".subjectNav").innerText;
+        console.log(subpdf);
+       
+        // PDF viewer functions
+        function viewPDF(pdfUrl) {
+            document.getElementById('pdfViewer').style.display = 'block';
+            document.getElementById('pdfFrame').src ="math_2023.pdf";
+        }
+
+        function closePDF() {
+            document.getElementById('pdfViewer').style.display = 'none';
+            document.getElementById('pdfFrame').src = '';
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const papers = document.querySelectorAll('.paper-card');
+
+            papers.forEach(paper => {
+                const title = paper.querySelector('.paper-title').textContent.toLowerCase();
+                const year = paper.querySelector('.paper-year').textContent.toLowerCase();
+                if (title.includes(query) || year.includes(query)) {
+                    paper.style.display = 'block';
+                } else {
+                    paper.style.display = 'none';
+                }
+            });
+        });
+
+        // Initialize app
+        initBranchNavigation();
+
+        // Close PDF viewer when clicking outside
+        window.onclick = function(event) {
+            const viewer = document.getElementById('pdfViewer');
+            if (event.target === viewer) {
+                closePDF();
+            }
+        }
+    </script>
+</body>
+</html>
