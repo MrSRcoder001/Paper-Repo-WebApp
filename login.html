@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login / Signup - Question Paper Repository</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="auth-container" id="authContainer">
         <h2 id="authTitle">Login</h2>
@@ -19,9 +21,9 @@
         </form>
     </div>
 
-    <script>
-        // User management
-        let users = JSON.parse(localStorage.getItem('users')) || [];
+<script>
+    
+    let users = JSON.parse(localStorage.getItem('users')) || [];
 
         // Auth UI elements
         const authTitle = document.getElementById('authTitle');
@@ -61,12 +63,12 @@
                 const user = users.find(u => u.email === email && u.password === password);
                 if (user) {
                     sessionStorage.setItem('currentUser', JSON.stringify(user));
-                    window.location.href = 'index.html'; // Redirect to main app
+                    window.location.href = 'index.html'; 
                 } else {
                     errorMessage.style.display = 'block';
                 }
             } else {
-                // Signup logic
+         
                 if (users.some(u => u.email === email)) {
                     errorMessage.textContent = 'User already exists!';
                     errorMessage.style.display = 'block';
@@ -76,9 +78,10 @@
                 users.push(newUser);
                 localStorage.setItem('users', JSON.stringify(users));
                 sessionStorage.setItem('currentUser', JSON.stringify(newUser));
-                window.location.href = 'main.html'; // Redirect to main app
+                window.location.href = 'index.html';
             }
         });
-    </script>
+
+</script>
 </body>
 </html>

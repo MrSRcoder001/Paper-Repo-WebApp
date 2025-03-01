@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login / Signup - Question Paper Repository</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="auth-container" id="authContainer">
+        <h2 id="authTitle">Admin Login</h2>
+        <div class="error-message" id="errorMessage">Invalid credentials!</div>
+        <form class="auth-form" id="authForm">
+            <input type="email" class="auth-input" id="email" placeholder="Email" required>
+            <input type="password" class="auth-input" id="password" placeholder="Password" required>
+            <input type="text" class="auth-input" id="name" placeholder="Full Name" style="display: none;">
+            <button type="submit" class="auth-submit" id="authSubmit">Login</button>
+            <a href="#" class="auth-toggle" id="authToggle">Create new account</a>
+        </form>
+    </div>
+
+<script>
+    
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+
+        // Auth UI elements
+        const authTitle = document.getElementById('authTitle');
+        const authSubmit = document.getElementById('authSubmit');
+        const authToggle = document.getElementById('authToggle');
+        const nameField = document.getElementById('name');
+        const errorMessage = document.getElementById('errorMessage');
+        const authForm = document.getElementById('authForm');
+
+        // Toggle between login and signup
+        authToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (authTitle.textContent === 'Login') {
+                authTitle.textContent = 'Sign Up';
+                authSubmit.textContent = 'Register';
+                nameField.style.display = 'block';
+                authToggle.textContent = 'Already have an account?';
+                errorMessage.style.display = 'none';
+            } else {
+                authTitle.textContent = 'Login';
+                authSubmit.textContent = 'Login';
+                nameField.style.display = 'none';
+                authToggle.textContent = 'Create new account';
+                errorMessage.style.display = 'none';
+            }
+        });
+
+        // Handle form submission
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+
+            if (authTitle.textContent === 'Login') {
+                // Login logic
+                const user = users.find(u => u.email === email && u.password === password);
+                if (user) {
+                    sessionStorage.setItem('currentUser', JSON.stringify(user));
+                    window.location.href = 'index.html'; 
+                } else {
+                    errorMessage.style.display = 'block';
+                }
+            } else {
+         
+                if (users.some(u => u.email === email)) {
+                    errorMessage.textContent = 'User already exists!';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                const newUser = { email, password, name };
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                sessionStorage.setItem('currentUser', JSON.stringify(newUser));
+                window.location.href = 'index.html';
+            }
+        });
+
+</script>
+</body>
+</html>
