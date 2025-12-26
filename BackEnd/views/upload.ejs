@@ -1,0 +1,49 @@
+<%- include('layout', { title: 'Upload Papers' }) %>
+
+<div class="upload-container">
+    <div class="upload-box">
+        <h2>Upload Question Paper</h2>
+        <form action="/api/upload" method="POST" enctype="multipart/form-data" class="upload-form">
+            <div class="form-group">
+                <label for="branch">Branch</label>
+                <select id="branch" name="branch" required>
+                    <option value="">Select Branch</option>
+                    <option value="Computer Engineering">Computer Engineering</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Mechanical Engg">Mechanical Engineering</option>
+                    <option value="Electrical Engg">Electrical Engineering</option>
+                    <option value="Civil Engg">Civil Engineering</option>
+                    <option value="AIDS Engg">AIDS Engineering</option>
+                    <option value="EN&TC Engg">EN&TC Engineering</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="semester">Semester</label>
+                <select id="semester" name="semester" required>
+                    <option value="">Select Semester</option>
+                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester 2">Semester 2</option>
+                    <option value="Semester 3">Semester 3</option>
+                    <option value="Semester 4">Semester 4</option>
+                    <option value="Semester 5">Semester 5</option>
+                    <option value="Semester 6">Semester 6</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" required>
+            </div>
+            <div class="form-group">
+                <label for="year">Year</label>
+                <input type="number" id="year" name="year" min="2000" max="2024" required>
+            </div>
+            <div class="form-group">
+                <label for="paper">Question Paper (PDF)</label>
+                <input type="file" id="paper" name="paper" accept=".pdf" required>
+            </div>
+            <button type="submit" class="upload-btn">
+                <i class="fas fa-upload"></i> Upload Paper
+            </button>
+        </form>
+    </div>
+</div> 

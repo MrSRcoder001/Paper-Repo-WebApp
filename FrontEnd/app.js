@@ -13,9 +13,6 @@ const data = {
             "Programming & Problem Solving": [
                 { title: 'Programming & Problem Solving 2024', year: '2024', pdf: 'PPS_2024.pdf' }
             ]
-           
-
-
 
         },
 
@@ -256,124 +253,270 @@ const data = {
 
 };
 
+// Constants
+const DATA = data;
 
-// Initialize branch navigation
-function initBranchNavigation() {
-    const branchNav = document.getElementById('branchNav');
-    Object.keys(data).forEach(branch => {
-        const button = document.createElement('button');
-        button.className = 'nav-button';
-        button.textContent = branch;
-        button.onclick = () => showSemesters(branch);
-        branchNav.appendChild(button);
+// DOM Elements
+const elements = {
+    branchFilter: document.getElementById('branchFilter'),
+    semesterFilter: document.getElementById('semesterFilter'),
+    yearFilter: document.getElementById('yearFilter'),
+    searchInput: document.getElementById('searchInput'),
+    papersContainer: document.getElementById('papersContainer'),
+    loadingSpinner: document.getElementById('loadingSpinner'),
+    breadcrumbs: document.getElementById('breadcrumbs'),
+    pdfModal: document.getElementById('pdfModal'),
+    pdfFrame: document.getElementById('pdfFrame'),
+    pdfTitle: document.getElementById('pdfTitle'),
+    downloadPdf: document.getElementById('downloadPdf')
+};
+
+// State Management
+let state = {
+    currentBranch: '',
+    currentSemester: '',
+    currentSubject: '',
+    currentYear: '',
+    searchQuery: '',
+    filteredPapers: []
+};
+
+// Initialize the application
+function init() {
+    populateFilters();
+    setupEventListeners();
+    showAllPapers();
+}
+
+// Populate filter dropdowns
+function populateFilters() {
+    // Populate branches
+    const branches = Object.keys(DATA);
+    branches.forEach(branch => {
+        const option = document.createElement('option');
+        option.value = branch;
+        option.textContent = branch;
+        elements.branchFilter.appendChild(option);
+    });
+
+    // Populate years
+    const years = new Set();
+    Object.values(DATA).forEach(branch => {
+        Object.values(branch).forEach(semester => {
+            Object.values(semester).forEach(subjects => {
+                subjects.forEach(paper => {
+                    years.add(paper.year);
+                });
+            });
+        });
+    });
+    Array.from(years).sort().reverse().forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        elements.yearFilter.appendChild(option);
     });
 }
 
-// Show semesters for selected branch
-function showSemesters(branch) {
-    const semesterNav = document.getElementById('semesterNav');
-    semesterNav.innerHTML = '';
-    semesterNav.style.display = 'flex';
-
-    Object.keys(data[branch]).forEach(semester => {
-        const button = document.createElement('button');
-        button.className = 'nav-button';
-        button.textContent = semester;
-        button.onclick = () => showSubjects(branch, semester);
-        semesterNav.appendChild(button);
-    });
-
-    // Hide subject navigation and papers container
-    document.getElementById('subjectNav').style.display = 'none';
-    document.getElementById('papersContainer').innerHTML = '';
+// Setup event listeners
+function setupEventListeners() {
+    elements.branchFilter.addEventListener('change', handleBranchChange);
+    elements.semesterFilter.addEventListener('change', handleSemesterChange);
+    elements.yearFilter.addEventListener('change', handleYearChange);
+    elements.searchInput.addEventListener('input', handleSearch);
+    elements.downloadPdf.addEventListener('click', handleDownload);
 }
 
-// Show subjects for selected semester
-function showSubjects(branch, semester) {
-    const subjectNav = document.getElementById('subjectNav');
-    subjectNav.innerHTML = '';
-    subjectNav.style.display = 'flex';
-
-    Object.keys(data[branch][semester]).forEach(subject => {
-        const button = document.createElement('button');
-        let showname = document.querySelectorAll('button').innerText;
-        button.className = 'nav-button';
-        button.textContent = subject;
-        console.log(subject);
-        button.onclick = () =>showPapers(branch, semester, subject);
-        subjectNav.appendChild(button);
-
-    });
-
-
-    // Show papers for the first subject by default
-    const firstSubject = Object.keys(data[branch][semester])[0];
-    showPapers(branch, semester, firstSubject);
+// Event Handlers
+function handleBranchChange(e) {
+    state.currentBranch = e.target.value;
+    state.currentSemester = '';
+    state.currentSubject = '';
+    updateSemesterFilter();
+    filterPapers();
+    updateBreadcrumbs();
 }
 
-
-
-// Show papers for selected subject
-function showPapers(branch, semester, subject) {
-    const container = document.getElementById('papersContainer');
-    container.innerHTML = '';
-    data[branch][semester][subject].forEach(paper => {
-        const card = document.createElement('div');
-        card.className = 'paper-card';
-        card.innerHTML = `
-            <h3 class="paper-title">${paper.title}</h3>
-            <p class="paper-year">Year: ${paper.year}</p>
-            <div class="btn-group">
-                <button class="btn view-btn" onclick="viewPDF('${paper.pdf}')">View</button>
-                <a href="${paper.pdf}" download class="btn download-btn">Download</a>
-            </div>`;
-        container.appendChild(card);
-    });
-}
-let subpdf = document.querySelectorAll(".subjectNav").innerText;
-console.log(subpdf);
-
-// PDF viewer functions
-function viewPDF(pdfUrl) {
-    console.log(pdfUrl);
-    document.getElementById('pdfViewer').style.display = 'block';
-    document.getElementById('pdfFrame').src = pdfUrl;
+function handleSemesterChange(e) {
+    state.currentSemester = e.target.value;
+    state.currentSubject = '';
+    updateSubjectFilter();
+    filterPapers();
+    updateBreadcrumbs();
 }
 
-function closePDF() {
-    document.getElementById('pdfViewer').style.display = 'none';
-    document.getElementById('pdfFrame').src = '';
+function handleYearChange(e) {
+    state.currentYear = e.target.value;
+    filterPapers();
 }
 
-// Search functionality
-document.getElementById('searchInput').addEventListener('input', function (e) {
-    const query = e.target.value.toLowerCase();
-    const papers = document.querySelectorAll('.paper-card');
+function handleSearch(e) {
+    state.searchQuery = e.target.value.toLowerCase();
+    filterPapers();
+}
 
-    papers.forEach(paper => {
-        const title = paper.querySelector('.paper-title').textContent.toLowerCase();
-        const year = paper.querySelector('.paper-year').textContent.toLowerCase();
-        if (title.includes(query) || year.includes(query)) {
-            paper.style.display = 'block';
-        } else {
-            paper.style.display = 'none';
-        }
-    });
-});
-
-// Initialize app
-initBranchNavigation();
-
-// Close PDF viewer when clicking outside
-window.onclick = function (event) {
-    const viewer = document.getElementById('pdfViewer');
-    if (event.target === viewer) {
-        closePDF();
+function handleDownload() {
+    const currentPdf = elements.pdfFrame.src;
+    if (currentPdf) {
+        const link = document.createElement('a');
+        link.href = currentPdf;
+        link.download = currentPdf.split('/').pop();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }
 
+// Filter Updates
+function updateSemesterFilter() {
+    elements.semesterFilter.innerHTML = '<option value="">All Semesters</option>';
+    if (state.currentBranch) {
+        const semesters = Object.keys(DATA[state.currentBranch]);
+        semesters.forEach(semester => {
+            const option = document.createElement('option');
+            option.value = semester;
+            option.textContent = semester;
+            elements.semesterFilter.appendChild(option);
+        });
+    }
+}
 
+function updateSubjectFilter() {
+    elements.subjectFilter.innerHTML = '<option value="">All Subjects</option>';
+    if (state.currentBranch && state.currentSemester) {
+        const subjects = Object.keys(DATA[state.currentBranch][state.currentSemester]);
+        subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject;
+            option.textContent = subject;
+            elements.subjectFilter.appendChild(option);
+        });
+    }
+}
 
-//login
+// Paper Filtering
+function filterPapers() {
+    showLoading();
+    let filtered = [];
+
+    Object.entries(DATA).forEach(([branch, semesters]) => {
+        if (state.currentBranch && branch !== state.currentBranch) return;
+
+        Object.entries(semesters).forEach(([semester, subjects]) => {
+            if (state.currentSemester && semester !== state.currentSemester) return;
+
+            Object.entries(subjects).forEach(([subject, papers]) => {
+                if (state.currentSubject && subject !== state.currentSubject) return;
+
+                papers.forEach(paper => {
+                    if (state.currentYear && paper.year !== state.currentYear) return;
+                    if (state.searchQuery && !paper.title.toLowerCase().includes(state.searchQuery)) return;
+
+                    filtered.push({
+                        ...paper,
+                        branch,
+                        semester,
+                        subject
+                    });
+                });
+            });
+        });
+    });
+
+    state.filteredPapers = filtered;
+    renderPapers();
+    hideLoading();
+}
+
+// Rendering
+function renderPapers() {
+    elements.papersContainer.innerHTML = '';
+    
+    if (state.filteredPapers.length === 0) {
+        elements.papersContainer.innerHTML = `
+            <div class="no-results">
+                <i class="fas fa-search"></i>
+                <p>No papers found matching your criteria</p>
+            </div>
+        `;
+        return;
+    }
+
+    state.filteredPapers.forEach(paper => {
+        const paperCard = createPaperCard(paper);
+        elements.papersContainer.appendChild(paperCard);
+    });
+}
+
+function createPaperCard(paper) {
+    const card = document.createElement('div');
+    card.className = 'paper-card';
+    card.innerHTML = `
+        <h3 class="paper-title">${paper.title}</h3>
+        <div class="paper-meta">
+            <span><i class="fas fa-graduation-cap"></i> ${paper.branch}</span>
+            <span><i class="fas fa-calendar"></i> ${paper.semester}</span>
+            <span><i class="fas fa-book"></i> ${paper.subject}</span>
+        </div>
+        <div class="paper-actions">
+            <button class="action-btn view-btn" onclick="viewPDF('${paper.pdf}')">
+                <i class="fas fa-eye"></i> View
+            </button>
+            <button class="action-btn download-btn" onclick="downloadPDF('${paper.pdf}')">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    `;
+    return card;
+}
+
+// PDF Viewer
+function viewPDF(pdfUrl) {
+    elements.pdfFrame.src = pdfUrl;
+    elements.pdfTitle.textContent = pdfUrl.split('/').pop();
+    elements.pdfModal.style.display = 'block';
+}
+
+function closePDF() {
+    elements.pdfModal.style.display = 'none';
+    elements.pdfFrame.src = '';
+}
+
+// Breadcrumbs
+function updateBreadcrumbs() {
+    const breadcrumbs = [];
+    if (state.currentBranch) breadcrumbs.push(state.currentBranch);
+    if (state.currentSemester) breadcrumbs.push(state.currentSemester);
+    if (state.currentSubject) breadcrumbs.push(state.currentSubject);
+
+    elements.breadcrumbs.innerHTML = breadcrumbs.length > 0
+        ? breadcrumbs.map((crumb, index) => `
+            <span class="breadcrumb-item ${index === breadcrumbs.length - 1 ? 'active' : ''}">
+                ${crumb}
+            </span>
+        `).join('<i class="fas fa-chevron-right"></i>')
+        : '<span class="breadcrumb-item active">All Papers</span>';
+}
+
+// Utility Functions
+function showLoading() {
+    elements.loadingSpinner.style.display = 'flex';
+}
+
+function hideLoading() {
+    elements.loadingSpinner.style.display = 'none';
+}
+
+function showAllPapers() {
+    state.currentBranch = '';
+    state.currentSemester = '';
+    state.currentSubject = '';
+    state.currentYear = '';
+    state.searchQuery = '';
+    filterPapers();
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', init);
 
 
