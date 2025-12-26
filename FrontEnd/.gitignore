@@ -1,0 +1,12 @@
+BackEnd/
+├── views/
+│   ├── layout.ejs (main layout template)
+│   ├── index.ejs (home page)
+│   ├── login.ejs (user login)
+│   ├── adminLogin.ejs (admin login)
+│   ├── upload.ejs (paper upload)
+│   ├── authorized.ejs (authorized access)
+│   ├── error.ejs (error page)
+│   └── partials/
+│       ├── navbar.ejs (navigation bar)
+│       └── footer.ejs (footer)

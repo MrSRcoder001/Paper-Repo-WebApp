@@ -1,0 +1,25 @@
+<%- include('layout', { title: 'Admin Login' }) %>
+
+<div class="auth-container">
+    <div class="auth-box admin-box">
+        <h2>Admin Login</h2>
+        <form action="/api/admin/login" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="admin-email">Admin Email</label>
+                <input type="email" id="admin-email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="admin-password">Admin Password</label>
+                <input type="password" id="admin-password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="admin-key">Admin Key</label>
+                <input type="password" id="admin-key" name="adminKey" required>
+            </div>
+            <button type="submit" class="auth-btn admin-btn">Login as Admin</button>
+        </form>
+        <div class="auth-links">
+            <a href="/login">User Login</a>
+        </div>
+    </div>
+</div> 

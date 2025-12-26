@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/vpkbiet.png">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/appStyle.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <%- defineContent('head') %>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-content">
+                <img src="/images/vpkbiet.png" alt="VPKBIET Logo" class="logo">
+                <h1>Previous Year Question Papers</h1>
+            </div>
+            <div class="search-container">
+                <input type="text" class="search-box" placeholder="Search papers..." id="searchInput">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+        </header>
+
+        <%- include('partials/navbar', { path: path }) %>
+
+        <div class="main-content">
+            <%- include('partials/flash') %>
+            <%- body %>
+        </div>
+
+        <%- include('partials/footer') %>
+    </div>
+
+    <script src="/app.js"></script>
+    <%- defineContent('scripts') %>
+</body>
+</html> 

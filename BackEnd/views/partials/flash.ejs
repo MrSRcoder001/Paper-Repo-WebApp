@@ -1,0 +1,13 @@
+<% if (typeof messages !== 'undefined' && messages.length > 0) { %>
+    <div class="flash-messages">
+        <% messages.forEach(function(message) { %>
+            <div class="flash-message <%= message.type %>">
+                <i class="fas <%= message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle' %>"></i>
+                <p><%= message.text %></p>
+                <button class="close-flash" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        <% }); %>
+    </div>
+<% } %> 

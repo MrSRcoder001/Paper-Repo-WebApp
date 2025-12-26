@@ -1,0 +1,16 @@
+<nav class="navbar">
+    <div class="nav-links">
+        <a href="/" class="nav-link <%= path === '/' ? 'active' : '' %>">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <a href="/upload" class="nav-link <%= path === '/upload' ? 'active' : '' %>">
+            <i class="fas fa-upload"></i> Upload
+        </a>
+        <a href="/login" class="nav-link <%= path === '/login' ? 'active' : '' %>">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a href="/admin" class="nav-link <%= path === '/admin' ? 'active' : '' %>">
+            <i class="fas fa-user-shield"></i> Admin
+        </a>
+    </div>
+</nav> 
