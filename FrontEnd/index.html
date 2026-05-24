@@ -1,92 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="images/vpkbiet.png">
-    <title>VPKBIET Previous Year Question Papers</title>
-    <link rel="stylesheet" href="appStyle.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="app-container">
-        <header class="header">
-            <div class="header-content">
-                <img src="images/vpkbiet.png" alt="VPKBIET Logo" class="logo">
-                <h1>Previous Year Question Papers</h1>
-            </div>
-            <div class="search-container">
-                <input type="text" class="search-box" placeholder="Search papers..." id="searchInput">
-                <button class="search-btn"><i class="fas fa-search"></i></button>
-            </div>
-        </header>
-
-        <div class="main-content">
-            <aside class="sidebar">
-                <div class="filter-section">
-                    <h3>Filters</h3>
-                    <div class="filter-group">
-                        <label>Branch</label>
-                        <select id="branchFilter" class="filter-select">
-                            <option value="">All Branches</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Semester</label>
-                        <select id="semesterFilter" class="filter-select">
-                            <option value="">All Semesters</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Year</label>
-                        <select id="yearFilter" class="filter-select">
-                            <option value="">All Years</option>
-                        </select>
-                    </div>
-                </div>
-            </aside>
-
-            <main class="content-area">
-                <div class="navigation-breadcrumbs" id="breadcrumbs"></div>
-                
-                <div class="papers-container" id="papersContainer">
-                    <div class="loading-spinner" id="loadingSpinner">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </div>
-                </div>
-            </main>
-        </div>
-
-        <!-- PDF Viewer Modal -->
-        <div class="modal" id="pdfModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="pdfTitle">PDF Viewer</h3>
-                    <button class="close-btn" onclick="closePDF()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="pdfFrame"></iframe>
-                </div>
-                <div class="modal-footer">
-                    <button class="download-btn" id="downloadPdf">
-                        <i class="fas fa-download"></i> Download
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <footer>
-            <div class="footer-content">
-                <p>&copy; 2024 VPKBIET Question Paper Repository. All rights reserved.</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin"></i></a>
-                </div>
-            </div>
-        </footer>
-    </div>
-
-    <script src="app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
