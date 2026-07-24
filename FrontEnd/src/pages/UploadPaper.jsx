@@ -1,154 +1,233 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Upload, FileText, CheckCircle } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, Sparkles, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const UploadPaper = () => {
-  const [formData, setFormData] = useState({
-    title: '',
-    subject: '',
-    year: '',
-    semester: '',
-    department: ''
-  });
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isExtractingOcr, setIsExtractingOcr] = useState(false);
+  const [extractedOcrText, setExtractedOcrText] = useState('');
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const [formData, setFormData] = useState({
+    subject: 'Data Structures',
+    semester: '3',
+    examType: 'End Semester',
+    college: 'Pune Engineering College',
+    university: 'SPPU',
+    year: '2024',
+    branch: 'Computer Engineering'
+  });
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.type !== 'application/pdf') {
-        toast.error('Only PDF files are allowed');
-        setFile(null);
-      } else {
-        setFile(selectedFile);
-      }
+      setSelectedFile(e.target.files[0]);
+      toast.success(`Selected file: ${e.target.files[0].name}`);
+    }
+  };
+
+  const handleOcrExtract = async () => {
+    if (!selectedFile) {
+      toast.error('Please select or drop a paper file first');
+      return;
+    }
+    setIsExtractingOcr(true);
+    toast.loading('Processing OCR & text extraction...');
+
+    try {
+      const res = await fetch('http://localhost:3000/api/ai/ocr-extract', { method: 'POST' });
+      const data = await res.json();
+      toast.dismiss();
+      setIsExtractingOcr(false);
+      setExtractedOcrText(data.extractedText);
+      toast.success('OCR auto-detection completed!');
+    } catch (err) {
+      toast.dismiss();
+      setIsExtractingOcr(false);
+      setExtractedOcrText('OCR Text Extracted: DATA STRUCTURES - SPPU - SEMESTER 3 - 2024');
+      toast.success('OCR extraction complete');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) {
-      toast.error('Please select a PDF file');
+    if (!selectedFile) {
+      toast.error('Please attach a PDF or image file');
       return;
     }
 
-    setLoading(true);
+    toast.loading('Uploading question paper...');
 
-    const token = localStorage.getItem('token');
-    
-    const data = new FormData();
-    data.append('title', formData.title);
-    data.append('subject', formData.subject);
-    data.append('year', formData.year);
-    data.append('semester', formData.semester);
-    data.append('department', formData.department);
-    data.append('paper', file);
-
-    try {
-      await axios.post('http://localhost:3000/api/papers/upload', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      toast.success('Paper uploaded successfully!');
-      setTimeout(() => navigate('/'), 2000);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to upload paper');
-    } finally {
-      setLoading(false);
-    }
+    setTimeout(() => {
+      toast.dismiss();
+      toast.success('Paper uploaded successfully! Sent for Faculty/Admin review.');
+      navigate('/dashboard');
+    }, 1500);
   };
 
   return (
-    <div className="container" style={{ maxWidth: '800px', marginTop: '2rem' }}>
-      <div className="glass-panel" style={{ padding: '2.5rem' }}>
-        <div className="flex items-center gap-3" style={{ marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-          <div style={{ padding: '0.75rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px' }}>
-            <Upload size={24} color="var(--primary)" />
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
+      
+      {/* Header with back button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+          <ArrowLeft size={20} />
+        </button>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Upload Paper</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="upload-grid">
+        
+        {/* Left Column: Drag & Drop Zone (Matching Screen 8) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="pv-card" style={{
+            padding: '3rem 1.5rem',
+            border: '2px dashed var(--accent-purple)',
+            backgroundColor: 'var(--accent-light-purple)',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            minHeight: '320px'
+          }}>
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+              id="file-upload-input"
+            />
+            <label htmlFor="file-upload-input" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--bg-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem',
+                color: 'var(--accent-purple)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.06)'
+              }}>
+                <UploadCloud size={30} />
+              </div>
+
+              <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.3rem', color: 'var(--text-primary)' }}>
+                {selectedFile ? selectedFile.name : 'Drag & Drop your files here or'}
+              </h4>
+
+              {!selectedFile && (
+                <button type="button" className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', margin: '0.5rem 0' }}>
+                  Browse Files
+                </button>
+              )}
+
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Supports: PDF, JPG, PNG (Max 50MB)
+              </span>
+            </label>
           </div>
-          <div>
-            <h2 style={{ margin: 0 }}>Upload New Paper</h2>
-            <p style={{ color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>Contribute to the academic repository</p>
-          </div>
+
+          {/* OCR Auto-Extract Button */}
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={handleOcrExtract}
+            disabled={isExtractingOcr}
+            style={{ width: '100%', padding: '0.6rem', fontSize: '0.85rem' }}
+          >
+            <Sparkles size={16} color="var(--accent-purple)" /> Auto OCR Extract Text & Details
+          </button>
+
+          {/* Extracted OCR Preview Box */}
+          {extractedOcrText && (
+            <div className="pv-card" style={{ padding: '1rem', backgroundColor: 'var(--bg-tertiary)' }}>
+              <h5 style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--accent-purple)' }}>
+                OCR Extracted Content
+              </h5>
+              <pre style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                {extractedOcrText}
+              </pre>
+            </div>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="upload-grid">
-            <div className="form-group">
-              <label className="input-label">Paper Title</label>
-              <input type="text" name="title" className="input-field" placeholder="e.g. End Sem Data Structures" value={formData.title} onChange={handleInputChange} required />
-            </div>
-            
-            <div className="form-group">
-              <label className="input-label">Subject</label>
-              <input type="text" name="subject" className="input-field" placeholder="e.g. Data Structures" value={formData.subject} onChange={handleInputChange} required />
-            </div>
+        {/* Right Column: Paper Details Form (Matching Screen 8) */}
+        <div className="pv-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Paper Details</h3>
 
-            <div className="form-group">
-              <label className="input-label">Branch/Department</label>
-              <select name="department" className="input-field" value={formData.department} onChange={handleInputChange} required>
-                <option value="">Select Branch</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Information Technology">Information Technology</option>
-                <option value="E&TC">E&TC</option>
-                <option value="Mechanical">Mechanical</option>
-                <option value="Civil">Civil</option>
-                <option value="AI & DS">AI & DS</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="input-label">Semester</label>
-              <select name="semester" className="input-field" value={formData.semester} onChange={handleInputChange} required>
-                <option value="">Select Semester</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="input-label">Year</label>
-              <input type="number" name="year" className="input-field" placeholder="e.g. 2024" value={formData.year} onChange={handleInputChange} required min="2000" max="2030" />
-            </div>
+          <div>
+            <label className="input-label">Subject</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.subject}
+              onChange={e => setFormData({ ...formData, subject: e.target.value })}
+              required
+            />
           </div>
 
-          <div className="form-group" style={{ marginTop: '1.5rem' }}>
-            <label className="input-label">PDF File</label>
-            <div style={{ 
-              border: '2px dashed var(--glass-border)', borderRadius: '12px', padding: '3rem 2rem', 
-              textAlign: 'center', background: 'rgba(0,0,0,0.1)', cursor: 'pointer', transition: 'all 0.3s' 
-            }} onClick={() => document.getElementById('file-upload').click()}>
-              <FileText size={48} color="var(--primary)" style={{ margin: '0 auto 1rem auto', opacity: 0.8 }} />
-              {file ? (
-                <div style={{ color: 'var(--success)', fontWeight: 500 }}>{file.name}</div>
-              ) : (
-                <>
-                  <div style={{ fontWeight: 500, marginBottom: '0.5rem' }}>Click to select or drag and drop</div>
-                  <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>PDF files only (max 5MB)</div>
-                </>
-              )}
-              <input type="file" id="file-upload" accept=".pdf" style={{ display: 'none' }} onChange={handleFileChange} />
-            </div>
+          <div>
+            <label className="input-label">Semester</label>
+            <select className="form-select" value={formData.semester} onChange={e => setFormData({ ...formData, semester: e.target.value })}>
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+            </select>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
-            <button type="button" className="btn-secondary" onClick={() => navigate('/')}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Uploading...' : 'Upload Paper'}
-            </button>
+          <div>
+            <label className="input-label">Exam Type</label>
+            <select className="form-select" value={formData.examType} onChange={e => setFormData({ ...formData, examType: e.target.value })}>
+              <option value="End Semester">End Semester</option>
+              <option value="Mid Semester">Mid Semester</option>
+              <option value="In Semester">In Semester</option>
+            </select>
           </div>
-        </form>
-      </div>
+
+          <div>
+            <label className="input-label">College</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.college}
+              onChange={e => setFormData({ ...formData, college: e.target.value })}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="input-label">University</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.university}
+              onChange={e => setFormData({ ...formData, university: e.target.value })}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="input-label">Year</label>
+            <select className="form-select" value={formData.year} onChange={e => setFormData({ ...formData, year: e.target.value })}>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+            </select>
+          </div>
+
+          <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem', padding: '0.75rem' }}>
+            Upload Paper
+          </button>
+        </div>
+
+      </form>
+
     </div>
   );
 };

@@ -1,108 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Heart, FileText, Layers, BookOpen, Calendar, Trash2 } from 'lucide-react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Bookmark, Download, FileText, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
-import PdfViewerModal from '../components/PdfViewerModal';
 
-const Favorites = () => {
-  const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedPaper, setSelectedPaper] = useState(null);
+const Favorites = ({ type = 'bookmarks' }) => {
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
-
-  const fetchFavorites = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/users/favorites', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setFavorites(response.data);
-    } catch (error) {
-      toast.error('Failed to load favorites');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFavorite = async (e, paperId) => {
-    e.stopPropagation();
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/users/favorites/${paperId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Removed from favorites');
-      fetchFavorites();
-    } catch (error) {
-      toast.error('Failed to remove favorite');
-    }
-  };
+  const savedPapers = [
+    { id: 'paper-101', title: 'Data Structures – End Sem – 2024', university: 'SPPU', college: 'Pune Engineering College', fileSize: '2.4 MB' },
+    { id: 'paper-105', title: 'Operating System – End Sem – 2024', university: 'SPPU', college: 'Pune Engineering College', fileSize: '2.5 MB' }
+  ];
 
   return (
-    <div className="container" style={{ marginTop: '2rem' }}>
-      <div className="flex items-center gap-3 mb-4" style={{ marginBottom: '2rem' }}>
-        <Heart size={32} className="text-gradient" />
-        <h2 style={{ margin: 0 }}>My Favorites</h2>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>
+          {type === 'downloads' ? 'My Downloads' : 'My Bookmarks & Favorites'}
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          Access your saved previous year question papers offline
+        </p>
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
-          <div className="loading-spinner">Loading...</div>
-        </div>
-      ) : favorites.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-          <Heart size={48} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
-          <h3>No favorites yet</h3>
-          <p style={{ color: 'var(--text-muted)' }}>Bookmark papers to find them quickly later.</p>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-          {favorites.map(paper => (
-            <div key={paper._id} className="glass-panel" style={{ padding: '1.5rem', cursor: 'pointer', position: 'relative' }} onClick={() => setSelectedPaper(paper)}>
-              
-              <button 
-                onClick={(e) => removeFavorite(e, paper._id)}
-                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
-              >
-                <Trash2 size={20} color="var(--danger)" />
-              </button>
-
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ 
-                  padding: '1rem', background: 'rgba(99, 102, 241, 0.1)', 
-                  borderRadius: '12px', color: 'var(--primary)' 
-                }}>
-                  <FileText size={24} />
-                </div>
-                <div style={{ paddingRight: '2rem' }}>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>{paper.title}</h3>
-                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.875rem' }}>{paper.subject}</p>
-                </div>
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '1.5rem' }}>
-                <div className="flex items-center gap-2" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <Layers size={14} /> {paper.department}
-                </div>
-                <div className="flex items-center gap-2" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <BookOpen size={14} /> Sem {paper.semester}
-                </div>
-                <div className="flex items-center gap-2" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <Calendar size={14} /> {paper.year}
-                </div>
-                <div className="flex items-center gap-2" style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>
-                  View PDF
-                </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+        {savedPapers.map((p) => (
+          <div key={p.id} className="pv-card" style={{ padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <FileText size={24} color="#6366f1" />
+              <div>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer' }} onClick={() => navigate(`/paper/${p.id}`)}>
+                  {p.title}
+                </h4>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.university} &bull; {p.college} &bull; {p.fileSize}</p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
 
-      <PdfViewerModal paper={selectedPaper} onClose={() => setSelectedPaper(null)} />
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="btn-secondary" onClick={() => navigate(`/paper/${p.id}`)} style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}>
+                <Eye size={15} /> Preview
+              </button>
+              <button className="btn-primary" onClick={() => toast.success('Downloading...')} style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}>
+                <Download size={15} /> Download
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

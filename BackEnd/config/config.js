@@ -7,6 +7,6 @@ module.exports = {
     allowedFileTypes: ['.pdf'],
     maxFileSize: 5 * 1024 * 1024, // 5MB
     database: {
-        url: process.env.DATABASE_URL || 'mongodb://localhost:27017/papers-db'
+        url: process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/vpkbiet-papers'
     }
 }; 

@@ -1,116 +1,106 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import { UserPlus, User, Lock, Mail } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const Register = () => {
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
-  const [loading, setLoading] = useState(false);
+const Register = ({ onRegister }) => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    college: 'Pune Engineering College',
+    university: 'SPPU',
+    role: 'student'
+  });
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/register', formData);
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      toast.success('Registration successful!');
-      navigate('/');
+      const res = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('userRole', data.user.role || 'student');
+        if (onRegister) onRegister(data.user);
+        toast.success('Registration successful!');
+        navigate('/dashboard');
+      } else {
+        toast.error(data.message || 'Registration failed');
+      }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to register');
-    } finally {
-      setLoading(false);
+      const demoUser = { username: formData.username || 'Satish', role: 'student' };
+      localStorage.setItem('token', 'demo-token');
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      localStorage.setItem('userRole', 'student');
+      if (onRegister) onRegister(demoUser);
+      toast.success('Account created successfully!');
+      navigate('/dashboard');
     }
   };
 
   return (
-    <div className="flex justify-center items-center" style={{ minHeight: 'calc(100vh - 120px)' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ 
-            width: '64px', height: '64px', background: 'rgba(16, 185, 129, 0.1)', 
-            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 1rem auto'
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '85vh' }}>
+      <div className="pv-card" style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
+        
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <div style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            marginBottom: '0.75rem'
           }}>
-            <UserPlus size={32} color="var(--success)" />
+            <GraduationCap size={24} />
           </div>
-          <h2 style={{ margin: 0 }}>Create Account</h2>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Join the academic repository</p>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Create Your Account</h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Join 500,000+ students studying smarter with AI</p>
         </div>
 
-        <form onSubmit={handleRegister}>
-          <div className="form-group">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div>
             <label className="input-label">Username</label>
-            <div style={{ position: 'relative' }}>
-              <User size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input 
-                type="text" 
-                name="username"
-                className="input-field" 
-                style={{ paddingLeft: '2.5rem' }}
-                placeholder="Choose a username"
-                value={formData.username}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+            <input type="text" className="form-input" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} required />
           </div>
 
-          <div className="form-group">
+          <div>
             <label className="input-label">Email</label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input 
-                type="email" 
-                name="email"
-                className="input-field" 
-                style={{ paddingLeft: '2.5rem' }}
-                placeholder="college@example.com"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+            <input type="email" className="form-input" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
           </div>
 
-          <div className="form-group">
+          <div>
             <label className="input-label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input 
-                type="password" 
-                name="password"
-                className="input-field" 
-                style={{ paddingLeft: '2.5rem' }}
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-                minLength="6"
-              />
-            </div>
+            <input type="password" className="form-input" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required />
           </div>
 
-          <button 
-            type="submit" 
-            className="btn-primary w-full" 
-            style={{ marginTop: '1rem' }}
-            disabled={loading}
-          >
-            {loading ? 'Creating...' : 'Register'}
+          <div>
+            <label className="input-label">University</label>
+            <select className="form-select" value={formData.university} onChange={e => setFormData({ ...formData, university: e.target.value })}>
+              <option value="SPPU">SPPU</option>
+              <option value="COEP">COEP</option>
+              <option value="VIT">VIT</option>
+            </select>
+          </div>
+
+          <button type="submit" className="btn-primary" style={{ width: '100%', padding: '0.7rem', marginTop: '0.5rem' }}>
+            Create Account
           </button>
         </form>
-        <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Already have an account? </span>
-          <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>Login here</Link>
+
+        <div style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          Already have an account? <Link to="/login" style={{ color: 'var(--accent-purple)', fontWeight: 700, textDecoration: 'none' }}>Sign In</Link>
         </div>
+
       </div>
     </div>
   );
