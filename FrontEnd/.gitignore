@@ -1,12 +1,24 @@
-BackEnd/
-├── views/
-│   ├── layout.ejs (main layout template)
-│   ├── index.ejs (home page)
-│   ├── login.ejs (user login)
-│   ├── adminLogin.ejs (admin login)
-│   ├── upload.ejs (paper upload)
-│   ├── authorized.ejs (authorized access)
-│   ├── error.ejs (error page)
-│   └── partials/
-│       ├── navbar.ejs (navigation bar)
-│       └── footer.ejs (footer)
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

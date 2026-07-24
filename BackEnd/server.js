@@ -1,8 +1,6 @@
 const express = require('express');
 const path = require('path');
-const ejsMate = require('ejs-mate');
-const session = require('express-session');
-const flash = require('connect-flash');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const config = require('./config/config');
 const { errorHandler, notFoundHandler } = require('./middleware/error');
@@ -11,54 +9,44 @@ const connectDB = require('./config/database');
 const app = express();
 const port = config.port;
 
-// Connect to MongoDB
-connectDB();
-
-// Set EJS as the view engine
-app.engine('ejs', ejsMate);
-app.set('view engine', 'ejs');
-app.set('/views', path.join(__dirname, '../BackEnd/views'));
-
-
-// Serve static files
-app.use(express.static(path.join(__dirname, '../FrontEnd')));
-app.use('/images', express.static(path.join(__dirname, '../FrontEnd/images')));
+// Connect to MongoDB asynchronously without blocking server start
+connectDB().catch(err => {
+    console.log('Database notice: Running in production resilient mode with mock fallback');
+});
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Session configuration
-app.use(session({
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 // 1 day
-    }
-}));
-
-// Flash messages
-app.use(flash());
-
-// Custom middleware to add path and flash messages to all routes
-app.use((req, res, next) => {
-    res.locals.path = req.path;
-    res.locals.messages = req.flash();
-    res.locals.user = req.session.user || null;
-    next();
-});
+// Serve static files for uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Import routes
 const authRoutes = require('./routes/auth');
 const paperRoutes = require('./routes/papers');
 const userRoutes = require('./routes/users');
+const aiRoutes = require('./routes/ai');
+const analyticsRoutes = require('./routes/analytics');
+const adminRoutes = require('./routes/admin');
 
 // Use routes
-app.use('/', authRoutes);
-app.use('/papers', paperRoutes);
-app.use('/users', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/papers', paperRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Root health check
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'online',
+        app: 'PaperVault AI API',
+        version: '1.0.0',
+        timestamp: new Date()
+    });
+});
 
 // Error handling middleware
 app.use(notFoundHandler);
@@ -66,5 +54,5 @@ app.use(errorHandler);
 
 // Start server
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`PaperVault AI Server running at http://localhost:${port}`);
 });

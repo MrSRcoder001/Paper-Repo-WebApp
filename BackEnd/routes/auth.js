@@ -1,16 +1,45 @@
 const express = require('express');
 const router = express.Router();
-const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
+const config = require('../config/config');
 const User = require('../models/User');
 
-// Login page
-router.get('/login', (req, res) => {
-    res.render('auth/login', { title: 'Login' });
-});
+// Register handler
+router.post('/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username or email already exists' });
+        }
 
-// Admin login page
-router.get('/admin', (req, res) => {
-    res.render('auth/adminLogin', { title: 'Admin Login' });
+        // If it's the first user, make them an admin
+        const userCount = await User.countDocuments();
+        const role = userCount === 0 ? 'admin' : 'user';
+
+        const user = new User({ username, email, password, role });
+        await user.save();
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            config.jwtSecret,
+            { expiresIn: '1d' }
+        );
+
+        res.status(201).json({
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role,
+                email: user.email,
+                favorites: user.favorites
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error during registration' });
+    }
 });
 
 // Login handler
@@ -20,29 +49,33 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ username });
         
         if (!user) {
-            req.flash('error', 'Invalid username or password');
-            return res.redirect('/login');
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-            req.flash('error', 'Invalid username or password');
-            return res.redirect('/login');
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
 
-        req.session.user = user;
-        req.flash('success', 'Welcome back!');
-        res.redirect('/');
-    } catch (error) {
-        req.flash('error', 'Something went wrong');
-        res.redirect('/login');
-    }
-});
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            config.jwtSecret,
+            { expiresIn: '1d' }
+        );
 
-// Logout handler
-router.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role,
+                email: user.email,
+                favorites: user.favorites
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error during login' });
+    }
 });
 
 module.exports = router; 

@@ -5,28 +5,22 @@ const User = require('../models/User');
 
 // User profile
 router.get('/profile', isAuthenticated, (req, res) => {
-    res.render('users/profile', {
-        title: 'My Profile',
-        user: req.session.user
-    });
+    res.json({ user: req.user });
 });
 
 // Update profile
 router.put('/profile', isAuthenticated, async (req, res) => {
     try {
         const { username, email } = req.body;
-        const user = await User.findById(req.session.user._id);
+        const user = await User.findById(req.user._id);
         
         if (username) user.username = username;
         if (email) user.email = email;
         
         await user.save();
-        req.session.user = user;
-        req.flash('success', 'Profile updated successfully');
-        res.redirect('/users/profile');
+        res.json({ message: 'Profile updated successfully', user });
     } catch (error) {
-        req.flash('error', 'Error updating profile');
-        res.redirect('/users/profile');
+        res.status(500).json({ message: 'Error updating profile' });
     }
 });
 
@@ -34,36 +28,86 @@ router.put('/profile', isAuthenticated, async (req, res) => {
 router.put('/change-password', isAuthenticated, async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
-        const user = await User.findById(req.session.user._id);
+        const user = await User.findById(req.user._id);
         
         const isMatch = await user.comparePassword(currentPassword);
         if (!isMatch) {
-            req.flash('error', 'Current password is incorrect');
-            return res.redirect('/users/profile');
+            return res.status(400).json({ message: 'Current password is incorrect' });
         }
         
         user.password = newPassword;
         await user.save();
         
-        req.flash('success', 'Password changed successfully');
-        res.redirect('/users/profile');
+        res.json({ message: 'Password changed successfully' });
     } catch (error) {
-        req.flash('error', 'Error changing password');
-        res.redirect('/users/profile');
+        res.status(500).json({ message: 'Error changing password' });
     }
 });
 
-// Admin routes
-router.get('/admin', isAdmin, async (req, res) => {
+// Add to favorites
+router.post('/favorites/:paperId', isAuthenticated, async (req, res) => {
     try {
-        const users = await User.find();
-        res.render('users/admin', {
-            title: 'User Management',
-            users
-        });
+        const user = await User.findById(req.user._id);
+        if (!user.favorites.includes(req.params.paperId)) {
+            user.favorites.push(req.params.paperId);
+            await user.save();
+        }
+        res.json({ message: 'Added to favorites', favorites: user.favorites });
     } catch (error) {
-        req.flash('error', 'Error fetching users');
-        res.redirect('/');
+        res.status(500).json({ message: 'Error adding favorite' });
+    }
+});
+
+// Remove from favorites
+router.delete('/favorites/:paperId', isAuthenticated, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        user.favorites = user.favorites.filter(id => id.toString() !== req.params.paperId);
+        await user.save();
+        res.json({ message: 'Removed from favorites', favorites: user.favorites });
+    } catch (error) {
+        res.status(500).json({ message: 'Error removing favorite' });
+    }
+});
+
+// Get favorites
+router.get('/favorites', isAuthenticated, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).populate('favorites');
+        res.json(user.favorites);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching favorites' });
+    }
+});
+
+// Admin: Get all users
+router.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const users = await User.find().select('-password');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching users' });
+    }
+});
+
+// Admin: Update user role
+router.put('/admin/users/:userId/role', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const { role } = req.body;
+        if (!['user', 'admin'].includes(role)) {
+            return res.status(400).json({ message: 'Invalid role' });
+        }
+        
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        user.role = role;
+        await user.save();
+        res.json({ message: 'User role updated successfully', user: { id: user._id, username: user.username, role: user.role } });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating user role' });
     }
 });
 

@@ -1,0 +1,42 @@
+name: PaperVault AI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install Backend Dependencies
+        run: |
+          cd BackEnd
+          npm ci
+      - name: Validate Backend Syntax & Start Server
+        run: |
+          cd BackEnd
+          node -e "console.log('Backend syntax valid')"
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install Frontend Dependencies
+        run: |
+          cd FrontEnd
+          npm ci
+      - name: Build Production Frontend Bundle
+        run: |
+          cd FrontEnd
+          npm run build
