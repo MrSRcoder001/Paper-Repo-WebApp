@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Bot, Send, Plus, Mic, Sparkles, Volume2, ThumbsUp, Copy, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bot, Send, Plus, Mic, Sparkles, Volume2, ThumbsUp, Copy, Check, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AIAssistant = () => {
@@ -26,7 +26,18 @@ const AIAssistant = () => {
 
   const [inputQuery, setInputQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isThinking]);
 
   const promptChips = [
     'Explain Stack',
@@ -42,6 +53,7 @@ const AIAssistant = () => {
     const newMsgList = [...messages, { sender: 'user', text: textToSend }];
     setMessages(newMsgList);
     setInputQuery('');
+    setIsThinking(true);
 
     try {
       const res = await fetch('http://localhost:3000/api/ai/chat', {
@@ -50,6 +62,7 @@ const AIAssistant = () => {
         body: JSON.stringify({ message: textToSend })
       });
       const data = await res.json();
+      setIsThinking(false);
 
       setMessages([
         ...newMsgList,
@@ -61,6 +74,7 @@ const AIAssistant = () => {
         }
       ]);
     } catch (err) {
+      setIsThinking(false);
       setMessages([
         ...newMsgList,
         {
@@ -134,14 +148,26 @@ const AIAssistant = () => {
         overflow: 'hidden'
       }}>
         
-        {/* Messages Stream */}
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingRight: '0.5rem' }}>
+        {/* Messages Stream with Hidden Scrollbars */}
+        <div 
+          className="no-scrollbar"
+          style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '1.25rem', 
+            paddingRight: '0.2rem',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
           {messages.map((msg, idx) => (
             <div
               key={idx}
               style={{
                 display: 'flex',
-                justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                justify: msg.sender === 'user' ? 'flex-end' : 'flex-start',
                 gap: '0.75rem'
               }}
             >
@@ -176,7 +202,7 @@ const AIAssistant = () => {
 
                 {/* Structured Markdown Table matching Screen 5 */}
                 {msg.table && (
-                  <div style={{ margin: '0.75rem 0', overflowX: 'auto', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                  <div className="no-scrollbar" style={{ margin: '0.75rem 0', overflowX: 'auto', borderRadius: '10px', border: '1px solid var(--border-color)', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     <table className="custom-table">
                       <thead>
                         <tr>
@@ -208,6 +234,41 @@ const AIAssistant = () => {
               </div>
             </div>
           ))}
+
+          {/* AI Thinking Loading State */}
+          {isThinking && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--accent-light-purple)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--accent-purple)',
+                flexShrink: 0
+              }}>
+                <Sparkles size={16} className="animate-spin" />
+              </div>
+              <div style={{
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-muted)',
+                padding: '0.75rem 1.1rem',
+                borderRadius: '18px 18px 18px 2px',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <Loader2 size={16} className="animate-spin" color="var(--accent-purple)" />
+                <span>AI Assistant is generating answer...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Scroll Anchor */}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Quick Suggestion Chips (Matching Screen 5) */}

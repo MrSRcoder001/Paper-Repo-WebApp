@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Search, FileText, Bot, CalendarCheck, BarChart3, Upload, X } from 'lucide-react';
 
 const CommandPalette = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const userRole = user?.role || 'student';
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -23,13 +26,17 @@ const CommandPalette = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const actions = [
+  let actions = [
     { title: 'Search Data Structures 2024 End Sem Paper', path: '/search?subject=Data+Structures', icon: FileText, category: 'Papers' },
     { title: 'Ask AI: What is the difference between Stack and Queue?', path: '/ai-assistant?q=Stack+vs+Queue', icon: Bot, category: 'AI Assistant' },
     { title: 'Generate Personal Study Plan', path: '/study-planner', icon: CalendarCheck, category: 'Study Planner' },
     { title: 'View Subject Wise Difficulty Analytics', path: '/analytics', icon: BarChart3, category: 'Analytics' },
     { title: 'Upload New Question Paper with OCR', path: '/upload', icon: Upload, category: 'Actions' }
   ];
+
+  if (userRole === 'student') {
+    actions = actions.filter(a => a.category !== 'Analytics');
+  }
 
   const filtered = actions.filter(a => a.title.toLowerCase().includes(query.toLowerCase()) || a.category.toLowerCase().includes(query.toLowerCase()));
 

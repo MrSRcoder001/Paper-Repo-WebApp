@@ -89,6 +89,17 @@ html, body {
   background: var(--text-muted);
 }
 
+/* Utility to hide scrollbars while preserving scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
 /* Layout Core Structure */
 .app-layout {
   display: flex;
@@ -492,23 +503,136 @@ html, body {
   }
 }
 
+/* Study Planner Mobile-First Responsive Styles */
+.planner-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.planner-day-card {
+  border-radius: 14px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.planner-day-card.completed {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.planner-day-header {
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  cursor: pointer;
+}
+
+.planner-day-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.planner-day-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding-left: 2.6rem;
+}
+
+.planner-topics-drawer {
+  padding: 1rem 1.15rem 1.15rem 3.6rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.planner-topic-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.planner-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.planner-filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.planner-stats-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .planner-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* 4. Small Mobile Devices (<= 480px) */
 @media (max-width: 480px) {
   h1 {
-    font-size: 1.35rem !important;
+    font-size: 1.3rem !important;
   }
 
   h2 {
-    font-size: 1.2rem !important;
+    font-size: 1.15rem !important;
   }
 
-  .btn-primary, .btn-secondary {
-    padding: 0.5rem 0.85rem;
-    font-size: 0.82rem;
+  .planner-stats-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .planner-stats-container .pv-card {
+    padding: 0.5rem 0.65rem !important;
+  }
+
+  .planner-form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .planner-day-header {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .planner-day-meta-row {
+    padding-left: 0;
+    margin-top: 0.2rem;
+  }
+
+  .planner-topics-drawer {
+    padding: 0.85rem !important;
   }
 
   .form-input, .form-select {
-    padding: 0.55rem 0.75rem;
-    font-size: 0.85rem;
+    font-size: 16px !important; /* Prevents auto-zoom on iOS mobile browsers */
   }
 }

@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
+import { AuthProvider, useAuth } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+
 // Layout & Navigation Components
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
@@ -23,16 +27,14 @@ import Favorites from './pages/Favorites';
 import SettingsPage from './pages/SettingsPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
+import SessionsPage from './pages/SessionsPage';
 
 function AppContent() {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const [theme, setTheme] = useState(localStorage.getItem('pv_theme') || 'light');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-
-  const user = JSON.parse(localStorage.getItem('user') || 'null') || {
-    name: 'Satish Rathod',
-    role: 'student'
-  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -43,8 +45,9 @@ function AppContent() {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  // Hide sidebar and top header on public Landing page, Login, and Register
-  const isPublicPage = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register';
+  // Public/guest pages (Landing, Login, Register, Verify Email) when NOT logged in
+  const isGuestRoute = ['/', '/login', '/register', '/verify-email'].includes(location.pathname);
+  const showAppLayout = isAuthenticated || !isGuestRoute;
 
   return (
     <div className="app-layout" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: '100vh' }}>
@@ -53,7 +56,7 @@ function AppContent() {
         position="top-right" 
         toastOptions={{
           style: {
-            backgroundColor: 'var(--card-bg)',
+            backgroundColor: 'var(--card-bg, #ffffff)',
             color: 'var(--text-primary)',
             border: '1px solid var(--border-color)',
             boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
@@ -71,53 +74,74 @@ function AppContent() {
       />
 
       {/* Main Layout Container */}
-      {!isPublicPage ? (
+      {showAppLayout ? (
         <div style={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
           
-          {/* Left Sidebar Navigation (Screens 2, 3, 5, 6, 8, 9, 10) */}
-          <Sidebar theme={theme} toggleTheme={toggleTheme} userRole={user.role} />
+          {/* Left Sidebar Navigation */}
+          <Sidebar theme={theme} toggleTheme={toggleTheme} />
 
           <div className="main-content">
             {/* Top Navbar Header */}
             <Navbar 
+              theme={theme}
+              toggleTheme={toggleTheme}
               onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} 
-              user={user} 
             />
 
-            {/* Page Router */}
+            {/* Protected Page Router */}
             <main className="page-container">
               <Routes>
-                <Route path="/dashboard" element={<HomeDashboard />} />
-                <Route path="/search" element={<SmartSearch />} />
-                <Route path="/paper/:id" element={<PaperViewer />} />
-                <Route path="/ai-assistant" element={<AIAssistant />} />
-                <Route path="/analytics" element={<AnalyticsDashboard />} />
-                <Route path="/upload" element={<UploadPaper />} />
-                <Route path="/study-planner" element={<StudyPlanner />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/library" element={<Favorites type="library" />} />
-                <Route path="/bookmarks" element={<Favorites type="bookmarks" />} />
-                <Route path="/downloads" element={<Favorites type="downloads" />} />
-                <Route path="/mock-tests" element={<AIAssistant />} />
-                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/dashboard" element={<ProtectedRoute><HomeDashboard /></ProtectedRoute>} />
+                <Route path="/search" element={<ProtectedRoute><SmartSearch /></ProtectedRoute>} />
+                <Route path="/paper/:id" element={<ProtectedRoute><PaperViewer /></ProtectedRoute>} />
+                <Route path="/ai-assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
+                <Route path="/analytics" element={
+                  <ProtectedRoute allowedRoles={['faculty', 'admin', 'college_admin']}>
+                    <AnalyticsDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/upload" element={<ProtectedRoute><UploadPaper /></ProtectedRoute>} />
+                <Route path="/study-planner" element={<ProtectedRoute><StudyPlanner /></ProtectedRoute>} />
+                
+                {/* Admin Portal (RBAC Protected: Admin Only) */}
+                <Route path="/admin" element={
+                  <ProtectedRoute allowedRoles={['admin', 'college_admin']}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+                <Route path="/library" element={<ProtectedRoute><Favorites type="library" /></ProtectedRoute>} />
+                <Route path="/bookmarks" element={<ProtectedRoute><Favorites type="bookmarks" /></ProtectedRoute>} />
+                <Route path="/downloads" element={<ProtectedRoute><Favorites type="downloads" /></ProtectedRoute>} />
+                <Route path="/mock-tests" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
+                <Route path="/sessions" element={<ProtectedRoute><SessionsPage /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+                
+                {/* If authenticated user visits login/register/landing, PublicRoute will redirect them back to dashboard */}
+                <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+                <Route path="/verify-email" element={<PublicRoute><VerifyEmail /></PublicRoute>} />
+
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </main>
           </div>
 
-          {/* Mobile Bottom Navigation Bar (Screen 7) */}
+          {/* Mobile Bottom Navigation Bar */}
           <MobileBottomNav />
 
         </div>
       ) : (
-        /* Public Pages (Landing, Login, Register) */
+        /* Unauthenticated Guest Pages (Landing, Login, Register, Verify Email) */
         <div style={{ width: '100%' }}>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+            <Route path="/verify-email" element={<PublicRoute><VerifyEmail /></PublicRoute>} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </div>
       )}
@@ -129,7 +153,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }

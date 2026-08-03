@@ -1,13 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Search, Bot, BarChart3, Upload } from 'lucide-react';
+import { LayoutDashboard, Search, Bot, Bookmark, Upload } from 'lucide-react';
 
 const MobileBottomNav = () => {
   const items = [
     { name: 'Home', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Search', path: '/search', icon: Search },
     { name: 'AI Chat', path: '/ai-assistant', icon: Bot },
-    { name: 'Analytics', path: '/analytics', icon: BarChart3 },
+    { name: 'Bookmarks', path: '/bookmarks', icon: Bookmark },
     { name: 'Upload', path: '/upload', icon: Upload },
   ];
 

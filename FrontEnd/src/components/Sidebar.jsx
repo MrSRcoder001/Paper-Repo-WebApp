@@ -1,62 +1,69 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
   Search, 
   Bot, 
   FolderKanban, 
-  Bookmark, 
-  Download, 
+  Upload,
   CalendarCheck, 
-  FileCheck2, 
   BarChart3, 
   Users, 
   ShieldCheck, 
-  Bell, 
   Settings, 
   Sun, 
   Moon,
-  Sparkles,
+  KeyRound,
   GraduationCap
 } from 'lucide-react';
 
-const Sidebar = ({ theme, toggleTheme, userRole = 'student' }) => {
+const Sidebar = ({ theme, toggleTheme }) => {
   const location = useLocation();
+  const { user } = useAuth();
+  const userRole = user?.role || 'student';
 
-  const navLinks = [
+  // Primary navigation links without duplicate entries
+  let navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Search Papers', path: '/search', icon: Search },
     { name: 'AI Assistant', path: '/ai-assistant', icon: Bot, badge: 'AI' },
+    { name: 'Upload Paper', path: '/upload', icon: Upload },
     { name: 'My Library', path: '/library', icon: FolderKanban },
-    { name: 'Bookmarks', path: '/bookmarks', icon: Bookmark },
-    { name: 'Downloads', path: '/downloads', icon: Download },
     { name: 'Study Planner', path: '/study-planner', icon: CalendarCheck },
-    { name: 'Mock Tests', path: '/mock-tests', icon: FileCheck2 },
-    { name: 'Analytics', path: '/analytics', icon: BarChart3 },
     { name: 'Community', path: '/community', icon: Users },
   ];
 
-  if (userRole === 'admin' || localStorage.getItem('userRole') === 'admin') {
-    navLinks.push({ name: 'Admin Dashboard', path: '/admin', icon: ShieldCheck, badge: 'Admin' });
+  // Include Analytics feature for Faculty and Admin roles
+  if (userRole === 'faculty' || userRole === 'admin' || userRole === 'college_admin') {
+    navLinks.push({ name: 'Analytics', path: '/analytics', icon: BarChart3 });
+  }
+
+  // Include Admin Portal for Admin & College Admin roles
+  if (userRole === 'admin' || userRole === 'college_admin') {
+    navLinks.push({ name: 'Admin Portal', path: '/admin', icon: ShieldCheck, badge: 'Admin' });
   }
 
   const secondaryLinks = [
-    { name: 'Notifications', path: '/notifications', icon: Bell },
+    { name: 'Active Sessions', path: '/sessions', icon: KeyRound },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
   return (
     <aside style={{
-      width: '240px',
+      width: 'var(--sidebar-width, 240px)',
       backgroundColor: 'var(--bg-secondary)',
       borderRight: '1px solid var(--border-color)',
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
+      maxHeight: '100vh',
       position: 'sticky',
       top: 0,
+      alignSelf: 'flex-start',
       zIndex: 40,
-      flexShrink: 0
+      flexShrink: 0,
+      overflow: 'hidden'
     }} className="hide-on-mobile">
       
       {/* Brand Logo */}
@@ -108,7 +115,7 @@ const Sidebar = ({ theme, toggleTheme, userRole = 'student' }) => {
                   fontSize: '0.875rem',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                  backgroundColor: isActive ? 'var(--accent-purple)' : 'transparent',
+                  backgroundColor: isActive ? 'var(--accent-purple, #6366f1)' : 'transparent',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -123,7 +130,7 @@ const Sidebar = ({ theme, toggleTheme, userRole = 'student' }) => {
                     padding: '0.15rem 0.45rem',
                     borderRadius: '6px',
                     backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'var(--accent-light-purple)',
-                    color: isActive ? '#ffffff' : 'var(--accent-purple)'
+                    color: isActive ? '#ffffff' : 'var(--accent-purple, #6366f1)'
                   }}>
                     {item.badge}
                   </span>
@@ -153,7 +160,7 @@ const Sidebar = ({ theme, toggleTheme, userRole = 'student' }) => {
                   fontSize: '0.875rem',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                  backgroundColor: isActive ? 'var(--accent-purple)' : 'transparent',
+                  backgroundColor: isActive ? 'var(--accent-purple, #6366f1)' : 'transparent',
                 }}
               >
                 <Icon size={18} color={isActive ? '#ffffff' : 'var(--text-muted)'} />
